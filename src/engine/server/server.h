@@ -6,6 +6,7 @@
 #include <base/tl/sorted_array.h>
 
 #include <engine/server.h>
+#include <engine/shared/http.h>
 #include <engine/shared/memheap.h>
 
 class CSnapIDPool
@@ -65,6 +66,7 @@ class CServer : public IServer
 	class CConfig *m_pConfig;
 	class IConsole *m_pConsole;
 	class IStorage *m_pStorage;
+	class IRegister *m_pRegister;
 
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
@@ -153,6 +155,8 @@ public:
 	IEngineMap *m_pMap;
 	IMapChecker *m_pMapChecker;
 
+	CHttp m_Http;
+
 	int64 m_GameStartTime;
 	bool m_RunServer;
 	bool m_MapReload;
@@ -189,7 +193,7 @@ public:
 	int m_GeneratedRconPassword;
 
 	CDemoRecorder m_DemoRecorder;
-	CRegister m_Register;
+	bool m_ServerInfoNeedsUpdate;
 
 	CServer();
 
@@ -241,6 +245,9 @@ public:
 
 	void ProcessClientPacket(CNetChunk *pPacket);
 
+	virtual void ExpireServerInfo();
+	void UpdateRegisterServerInfo();
+	void UpdateServerInfo(bool Resend = false);
 	void SendServerInfo(int ClientID);
 	void GenerateServerInfo(CPacker *pPacker, int ServerInfoVersion, bool IncludeClientInfo);
 	// return: next StartClientID to continue from, or -1 if done
@@ -252,7 +259,6 @@ public:
 	const char *GetMapName();
 	int LoadMap(const char *pMapName);
 
-	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, CConfig *pConfig, IConsole *pConsole);
 	void InitInterfaces(IKernel *pKernel);
 	int Run();
 	void Free();

@@ -3028,6 +3028,37 @@ int str_span(const char *str, const char *set)
 	return strcspn(str, set);
 }
 
+static const char *str_token_get(const char *str, const char *delim, int *length)
+{
+	size_t len = strspn(str, delim);
+	if(len > 1)
+		str++;
+	else
+		str += len;
+	if(!*str)
+		return NULL;
+
+	*length = strcspn(str, delim);
+	return str;
+}
+
+const char *str_next_token(const char *str, const char *delim, char *buffer, int buffer_size)
+{
+	int len = 0;
+	const char *tok = str_token_get(str, delim, &len);
+	if(len < 0 || tok == NULL)
+	{
+		buffer[0] = '\0';
+		return NULL;
+	}
+
+	len = buffer_size > len ? len : buffer_size - 1;
+	mem_copy(buffer, tok, len);
+	buffer[len] = '\0';
+
+	return tok + len;
+}
+
 int mem_comp(const void *a, const void *b, int size)
 {
 	return memcmp(a, b, size);

@@ -1478,6 +1478,24 @@ void str_timestamp_ex(time_t time, char *buffer, int buffer_size, const char *fo
 */
 int str_span(const char *str, const char *set);
 
+/*
+	Function: str_next_token
+		Writes the next token after str into buf, returns the rest of the string.
+
+	Parameters:
+		str - Pointer to string.
+		delim - Delimiter for tokenization.
+		buffer - Buffer to store token in.
+		buffer_size - Size of the buffer.
+
+	Returns:
+		Pointer to rest of the string.
+
+	Remarks:
+		- The token is always null-terminated.
+*/
+const char *str_next_token(const char *str, const char *delim, char *buffer, int buffer_size);
+
 #define FORMAT_TIME "%H:%M:%S"
 #define FORMAT_SPACE "%Y-%m-%d %H:%M:%S"
 #define FORMAT_NOSPACE "%Y-%m-%d_%H-%M-%S"

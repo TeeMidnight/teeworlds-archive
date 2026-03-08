@@ -243,6 +243,7 @@ public:
 	virtual const char *NetVersionHashReal() const;
 
 	virtual int GetMaxPlayerSlots();
+	virtual void OnUpdatePlayerServerInfo(class CJsonStringWriter *pJsonWriter, int ClientID);
 };
 
 inline int64 CmaskAll() { return -1; }

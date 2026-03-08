@@ -4,6 +4,7 @@
 
 #include <engine/map.h>
 #include <engine/shared/config.h>
+#include <engine/shared/jsonwriter.h>
 #include <engine/shared/memheap.h>
 #include <engine/storage.h>
 
@@ -746,6 +747,8 @@ void CGameContext::OnClientEnter(int ClientID)
 		Msg.m_Team = NewClientInfoMsg.m_Team;
 		Server()->SendPackMsg(&Msg, MSGFLAG_NOSEND, -1);
 	}
+
+	Server()->ExpireServerInfo();
 }
 
 void CGameContext::OnClientConnected(int ClientID, bool Dummy, bool AsSpec)
@@ -780,6 +783,8 @@ void CGameContext::OnClientTeamChange(int ClientID)
 		if(p->GetOwner() == ClientID)
 			p->LoseOwner();
 	}
+
+	Server()->ExpireServerInfo();
 }
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
@@ -820,6 +825,8 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 	m_apPlayers[ClientID] = 0;
 
 	m_VoteUpdate = true;
+
+	Server()->ExpireServerInfo();
 }
 
 void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
@@ -1142,6 +1149,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 				SendSkinChange(pPlayer->GetCID(), i);
 			}
+			Server()->ExpireServerInfo();
 		}
 		else if(MsgID == NETMSGTYPE_CL_COMMAND)
 		{
@@ -1862,5 +1870,43 @@ const char *CGameContext::NetVersion() const { return GAME_NETVERSION; }
 const char *CGameContext::NetVersionHashUsed() const { return GAME_NETVERSION_HASH_FORCED; }
 const char *CGameContext::NetVersionHashReal() const { return GAME_NETVERSION_HASH; }
 int CGameContext::GetMaxPlayerSlots() { return minimum(Config()->m_SvPlayerSlots, m_pController->GetMaxPlayerSlots()); }
+
+void CGameContext::OnUpdatePlayerServerInfo(CJsonStringWriter *pJsonWriter, int ClientID)
+{
+	if(!m_apPlayers[ClientID])
+		return;
+
+	CTeeInfos &TeeInfo = m_apPlayers[ClientID]->m_TeeInfos;
+
+	pJsonWriter->WriteAttribute("skin");
+	pJsonWriter->BeginObject();
+
+	const char *apPartNames[NUM_SKINPARTS] = {"body", "marking", "decoration", "hands", "feet", "eyes"};
+
+	for(int i = 0; i < NUM_SKINPARTS; ++i)
+	{
+		pJsonWriter->WriteAttribute(apPartNames[i]);
+		pJsonWriter->BeginObject();
+
+		pJsonWriter->WriteAttribute("name");
+		pJsonWriter->WriteStrValue(TeeInfo.m_aaSkinPartNames[i]);
+
+		if(TeeInfo.m_aUseCustomColors[i])
+		{
+			pJsonWriter->WriteAttribute("color");
+			pJsonWriter->WriteIntValue(TeeInfo.m_aSkinPartColors[i]);
+		}
+
+		pJsonWriter->EndObject();
+	}
+
+	pJsonWriter->EndObject();
+
+	pJsonWriter->WriteAttribute("afk");
+	pJsonWriter->WriteBoolValue(false);
+
+	pJsonWriter->WriteAttribute("team");
+	pJsonWriter->WriteIntValue(m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS ? -1 : 0);
+}
 
 IGameServer *CreateGameServer() { return new CGameContext; }

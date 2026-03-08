@@ -1,6 +1,7 @@
 CheckVersion("0.5")
 
 Import("configure.lua")
+Import("bamfind/curl.lua")
 Import("bamfind/sdl.lua")
 Import("bamfind/freetype.lua")
 Import("bamfind/opus.lua")
@@ -13,6 +14,7 @@ config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-p
 config:Add(OptTestCompileC("minmacosxsdk", "int main(){return 0;}", "-mmacosx-version-min=10.7 -isysroot /Developer/SDKs/MacOSX10.7.sdk"))
 config:Add(OptTestCompileC("buildwithoutsseflag", "#include <immintrin.h>\nint main(){_mm_pause();return 0;}", ""))
 config:Add(OptLibrary("zlib", "zlib.h", false))
+config:Add(Curl.OptFind("curl", true))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
 config:Add(Opus.OptFind("opus", true))
@@ -358,6 +360,7 @@ function SharedManifests(compiler)
 end
 
 function BuildEngineCommon(settings)
+	config.curl:Apply(settings)
 	settings.link.extrafiles:Merge(Compile(settings, Collect("src/engine/shared/*.cpp", "src/base/*.c")))
 end
 

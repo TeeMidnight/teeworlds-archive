@@ -236,6 +236,7 @@ find_package(SDL3)
 find_package(Threads)
 find_package(Opus)
 find_package(Opusfile)
+find_package(Curl)
 
 
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
@@ -275,6 +276,7 @@ function(show_dependency_status OUTPUT_NAME NAME)
   endif()
 endfunction()
 
+show_dependency_status("Curl" CURL)
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Dmg tools" DMGTOOLS)
 endif()
@@ -290,6 +292,9 @@ show_dependency_status("Opus" OPUS)
 show_dependency_status("Opusfile" OPUSFILE)
 show_dependency_status("Zlib" ZLIB)
 
+if(NOT(CURL_FOUND))
+  message(SEND_ERROR "You must install Curl to compile Teeworlds GhostHunt")
+endif()
 if(NOT(Python3_FOUND))
   message(SEND_ERROR "You must install Python to compile Teeworlds")
 endif()
@@ -1225,6 +1230,7 @@ set_src(ENGINE_INTERFACE GLOB src/engine
   editor.h
   engine.h
   graphics.h
+  http.h
   input.h
   kernel.h
   keys.h
@@ -1256,6 +1262,8 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   engine.cpp
   filecollection.cpp
   filecollection.h
+  http.cpp
+  http.h
   huffman.cpp
   huffman.h
   jobs.cpp
@@ -1321,7 +1329,7 @@ set(GAME_GENERATED_SHARED
 set(DEPS ${DEP_JSON} ${DEP_MD5} ${ZLIB_DEP})
 
 # Libraries
-set(LIBS ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES} ${CRYPTO_LIBRARIES} ${PLATFORM_LIBS})
+set(LIBS ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES} ${CRYPTO_LIBRARIES} ${CURL_LIBRARIES} ${PLATFORM_LIBS})
 
 # Targets
 add_library(engine-shared EXCLUDE_FROM_ALL OBJECT ${ENGINE_INTERFACE} ${ENGINE_SHARED} ${ENGINE_GENERATED_SHARED} ${BASE})
@@ -2075,6 +2083,7 @@ foreach(target ${TARGETS_LINK})
   if(TARGET_OS STREQUAL "mac")
     target_link_libraries(${target} -stdlib=libc++)
     target_link_libraries(${target} -mmacosx-version-min=10.7)
+    target_link_libraries(${target} "-framework SystemConfiguration") # Required by curl 7.79.0
     target_compile_options(${target} PRIVATE -Wno-inconsistent-missing-override)
   endif()
   if((MINGW OR TARGET_OS STREQUAL "linux") AND PREFER_BUNDLED_LIBS)

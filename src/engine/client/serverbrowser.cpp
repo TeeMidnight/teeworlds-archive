@@ -698,7 +698,7 @@ void CServerBrowser::SaveServerlist()
 	if(!File)
 		return;
 
-	CJsonWriter Writer(File);
+	CJsonFileWriter Writer(File);
 	Writer.BeginObject(); // root
 	Writer.WriteAttribute("serverlist");
 	Writer.BeginArray();
