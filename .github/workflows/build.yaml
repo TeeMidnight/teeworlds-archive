@@ -63,25 +63,15 @@ jobs:
           opusfile:p
           openssl:p
           curl:p
-
-    - name: Checkout SDL3
-      if: contains(matrix.os, 'ubuntu')
-      uses: actions/checkout@v4
-      with:
-        repository: libsdl-org/SDL
-        ref: release-3.2.28
-        path: ./SDL
-
+  
     - name: Prepare Linux
       if: contains(matrix.os, 'ubuntu')
       run: |
+        sudo apt install distrobox
+        echo y | distrobox create -i registry.gitlab.steamos.cloud/steamrt/sniper/sdk sniper
+        distrobox enter sniper
         sudo apt-get update -y
-        sudo apt-get install pkg-config ninja-build libfreetype6-dev libopus-dev libopusfile-dev libcurl4-openssl-dev libgl1-mesa-dev -y
-        sudo apt-get install build-essential git cmake libasound2-dev libpulse-dev libaudio-dev libjack-dev libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libibus-1.0-dev libdbus-1-dev libudev-dev libinput-dev libts-dev libjpeg-dev libwebp-dev -y
-        cd SDL
-        cmake . -DCMAKE_BUILD_TYPE=Release -DSDL_TEST=OFF -DSDL_STATIC=OFF 
-        sudo make install
-        sudo ldconfig
+        sudo apt-get install pkg-config ninja-build libfreetype6-dev libopus-dev libopusfile-dev libcurl4-openssl-dev -y
 
     - name: Prepare MacOS
       if: contains(matrix.os, 'macOS')
