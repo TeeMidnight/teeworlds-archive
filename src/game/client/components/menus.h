@@ -3,6 +3,7 @@
 #ifndef GAME_CLIENT_COMPONENTS_MENUS_H
 #define GAME_CLIENT_COMPONENTS_MENUS_H
 
+#include <base/tl/hashtable.h>
 #include <base/tl/sorted_array.h>
 #include <base/tl/string.h>
 #include <base/vmath.h>
@@ -185,6 +186,8 @@ private:
 		string m_Name;
 		int m_IconIndex;
 	};
+	hash_table<string, string, 16, string_nocase_function> m_GametypesAlias;
+	void InitGametypeAlias();
 	enum
 	{
 		MAX_GAMEICONS = 96,
@@ -651,6 +654,7 @@ public:
 	virtual void OnStateChange(int NewState, int OldState);
 	virtual void OnReset();
 	virtual void OnRender();
+	virtual void OnSoundLoaded() { UpdateMusicState(); }
 	virtual bool OnInput(IInput::CEvent Event);
 	virtual bool OnCursorMove(float x, float y, int CursorType);
 
